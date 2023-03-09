@@ -26,18 +26,11 @@ from firebase_admin import db
 
 
 st.title("Aprendamos Juntos MTY")
-#
-#with open('/Users/antoniopatjane/Downloads/AJ.txt') as f:
-#    OrgDesc = f.read()
 
 refPro = db.reference("/Organizaciones/Aprendamos Juntos")
 
 container = st.container()
 container.header('Sus proyectos son:')
-
-#proyectosDisp = ref.get()
-
-
 
 
 tab1, tab2 = st.tabs(["Comunicacion(Español)", "Matematicas I"])
@@ -61,18 +54,36 @@ with tab1:
    st.dataframe(alumnos)
 
    select_alumn = st.selectbox("Selecciona Alumno", alumnos.index)
+
+  
+
+   refAlumno = db.reference("/Organizaciones/Aprendamos Juntos/Espanol/Alumnos/"+select_alumn )
+   refEstatus = db.reference("/Organizaciones/Aprendamos Juntos/Espanol/Alumnos/"+select_alumn+"/Estatus de Entrevista" )
+   estatus = refEstatus.get()
    
-
-
-   horas = st.slider(f'Cuantas horas acredito el Alumno: {select_alumn!r} ?', 0, 120, 60)
-   st.write(f'El alumno {select_alumn!r} acredito', horas, 'horas con el proyecto')
-
+   if estatus == "En proceso":
+      option = st.selectbox(
+      'Modificar estatus de entrevista del alumno: ',
+      ('Aprobado', 'En proceso', 'Negado'))
+      if st.button('Actualizar'):
+         st.write('Estatus Actualizado')
+         refAlumno.update({ "Estatus de Entrevista": option })
+         st.experimental_rerun()
+      else:
+         st.write('Progreso no guardado')
    
-   if st.button('Guardar'):
-    st.write('Horas acreditadas')
-    alumnos.at[select_alumn,'Grupo'] = horas
-   else:
-    st.write('Progreso no guardado')
+   if estatus == "Aprobado":
+      horas = st.slider(f'Cuantas horas acredito el Alumno: {select_alumn!r} ?', 0, 120, 60)
+      st.write(f'El alumno {select_alumn!r} acredito', horas, 'horas con el proyecto')
+      if st.button('Guardar'):
+         st.write('Horas acreditadas')
+         refAlumno.update({ "Horas Acreditadas": horas })
+         st.experimental_rerun()
+      else:
+         st.write('Progreso no guardado')
+   
+   st. subheader('Total de alumnos inscritos en el proyecto')
+   st.metric(label="Total:", value = len(alumnos.axes[0]), label_visibility='hidden' )
 
 
 with tab2:
@@ -89,15 +100,32 @@ with tab2:
       select_alumn = select_alumn.replace("'", "")
 
 
-      horas = st.slider(f'Cuantas horas acredito el Alumno: {select_alumn!r} ?', 0, 120, 60)
-      st.write(f'El alumno {select_alumn!r} acredito', horas, 'horas con el proyecto')
+      refAlumno = db.reference("/Organizaciones/Aprendamos Juntos/Matematicas/Alumnos/"+select_alumn )
+      refEstatus = db.reference("/Organizaciones/Aprendamos Juntos/Matematicas/Alumnos/"+select_alumn+"/Estatus de Entrevista" )
+      estatus = refEstatus.get()
+      
+      if estatus == "En proceso":
+         option = st.selectbox(
+         'Modificar estatus de entrevista del alumno: ',
+         ('Aprobado ', 'En proceso', 'Negado'))
+         if st.button('Actualizar '):
+            st.write('Estatus Actualizado')
+            refAlumno.update({ "Estatus de Entrevista": option })
+            st.experimental_rerun()
+         else:
+            st.write('Progreso no guardado')
+      
+      if estatus == "Aprobado":
+         horas = st.slider(f'Cuantas horas acredito el Alumno: {select_alumn!r} ?', 0, 120, 60)
+         st.write(f'El alumno {select_alumn!r} acredito', horas, 'horas con el proyecto')
+         if st.button('Guardar '):
+            st.write('Horas acreditadas')
+            refAlumno.update({ "Horas Acreditadas": horas })
+            st.experimental_rerun()
+         else:
+            st.write('Progreso no guardado')
 
-      if st.button('Guardar '):
-         st.write('Horas acreditadas')
-         alumnos.at[select_alumn,'Grupo'] = horas
-      else:
-         st.write('Progreso no guardado')
+      st. subheader('Total de alumnos inscritos en el proyecto')
+      st.metric(label="Total:", value = len(alumnos.axes[0]), label_visibility='hidden' )
 
 
-st. subheader('Total de alumnos inscritos en la organizacion')
-st.metric(label="Total:", value = len(alumnos.axes[0]), label_visibility='hidden' )
